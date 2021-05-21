@@ -1,0 +1,21 @@
+version: "3.0"
+
+networks:
+  docker-internal:
+
+services:
+  rabbitmq:
+    hostname: "rabbitmq"
+    container_name: "rabbitmq"
+    image: "rabbitmq:3.8-management-alpine"
+    expose: 
+      - 5672
+    ports: 
+      - 15672:15672 # Management UI
+      # - 5672:5672 #AMQP
+    volumes:
+      - ./rabbitmq/etc:/etc/rabbitmq/
+      - ./rabbitmq/data:/var/lib/rabbitmq/
+      - ./rabbitmq/logs:/var/log/rabbitmq/
+    networks:
+      - docker-internal
