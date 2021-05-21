@@ -1,2 +1,6 @@
-rabbitmq/data
-rabbitmq/logs
+.rabbitmq/data
+.rabbitmq/logs
+.mongo/data
+.mongo/logs
+
+node_modules

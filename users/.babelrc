@@ -1,0 +1,23 @@
+{
+  "presets": [
+    "@babel/env"
+  ],
+  "plugins": [
+    [
+      "@babel/plugin-transform-runtime",
+      {
+        "regenerator": true
+      }
+    ],
+    "@babel/plugin-proposal-class-properties",
+    [
+      "module-resolver",
+      {
+        "root": [
+          "../node_modules",
+          "./src"
+        ]
+      }
+    ]
+  ]
+}

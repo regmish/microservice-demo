@@ -1,0 +1,43 @@
+{
+  "name": "apartments",
+  "version": "1.0.0",
+  "description": "Apartments API",
+  "main": "src",
+  "scripts": {
+    "start": "nodemon --exec babel-node src",
+    "build": "babel src --out-dir dist --copy-files",
+    "serve": "NODE_ENV=production node dist",
+    "lint": "eslint ./src/",
+    "test": "echo 'TEST SUCCESSFUL !!'"
+  },
+  "author": {
+    "name": "Shankar Regmi",
+    "email": "shankarregmi@gmail.com"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.4.5",
+    "config": "^3.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.16.4",
+    "http-status": "^1.4.2",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.20",
+    "moment": "^2.29.0",
+    "mongoose": "^5.3.3",
+    "require-directory": "^2.1.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/node": "^7.4.5",
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
+    "@babel/plugin-transform-runtime": "^7.4.4",
+    "@babel/preset-env": "^7.4.5",
+    "babel-plugin-module-resolver": "^4.0.0",
+    "eslint": "^7.11.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-import-resolver-babel-module": "^5.2.0",
+    "eslint-plugin-import": "^2.22.1",
+    "nodemon": "^1.19.1"
+  }
+}
