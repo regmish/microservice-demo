@@ -77,4 +77,20 @@ services:
     - mongodb
     networks:
       - docker-internal
+
+  app:
+    hostname: app
+    container_name: app
+    build:
+      context: ./app
+    restart: on-failure
+    ports:
+      - 3000:3000
+    environment:
+      - REACT_APP_USERS_API=3030
+    volumes:
+      - ./app:/app/
+      - /app/node_modules
+    networks:
+      - docker-internal
     
