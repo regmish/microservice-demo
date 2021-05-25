@@ -1,22 +1,37 @@
-import { useEffect } from "react";
+import React from 'react';
+import { Router } from 'react-router-dom';
+import { CssBaseline, ThemeProvider } from '@material-ui/core';
+import { createBrowserHistory } from 'history';
+import {
+  APIProvider,
+  ModalProvider,
+  AuthProvider,
+  ToastProvider,
+} from './providers';
+import { theme } from './theme';
+import Routes from './Routes';
+import { Modal } from './components/common/modal/modal';
+import { Toast } from './components/common/toast/toast';
 
-const USERS_API = `http://localhost:${process.env.REACT_APP_USERS_API}`;
+export const AppHistory = createBrowserHistory();
 
-const App = () => {
-  useEffect(() => {
-    const testAPI = async () => {
-      try {
-        console.log(USERS_API);
-        const resp = await fetch(USERS_API).then((r) => r.json());
-        console.log({ resp });
-      } catch (error) {
-        console.log("Error in API Call ", error);
-      }
-    };
-    testAPI();
-  }, []);
-
-  return <h1>App is Running...</h1>;
+export default () => {
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <ToastProvider>
+        <ModalProvider>
+          <APIProvider>
+            <AuthProvider>
+              <Router history={AppHistory}>
+                <Routes />
+              </Router>
+              <Modal />
+              <Toast />
+            </AuthProvider>
+          </APIProvider>
+        </ModalProvider>
+      </ToastProvider>
+    </ThemeProvider>
+  );
 };
-
-export default App;
