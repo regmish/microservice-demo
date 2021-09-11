@@ -13,7 +13,7 @@ services:
       - 5672
     ports: 
       - 15672:15672 # Management UI
-      # - 5672:5672 #AMQP
+      - 5672:5672 #AMQP
     volumes:
       - ./.rabbitmq/etc:/etc/rabbitmq/
       - ./.rabbitmq/data:/var/lib/rabbitmq/
@@ -21,38 +21,38 @@ services:
     networks:
       - docker-internal
   
-  mongodb:
-    hostname: mongodb
-    container_name: mongodb
-    image: mongo:4.2
-    restart: on-failure
-    expose:
-      - 27017
-    ports:
-      - 27020:27017
-    volumes:
-      - ./.mongo/data:/data/db
-      - ./.mongo/logs:/var/log/mongodb
-      - ./.mongo/init/:/docker-entrypoint-initdb.d/
-    networks:
-      - docker-internal
+  # mongodb:
+  #   hostname: mongodb
+  #   container_name: mongodb
+  #   image: mongo:4.2
+  #   restart: on-failure
+  #   expose:
+  #     - 27017
+  #   ports:
+  #     - 27020:27017
+  #   volumes:
+  #     - ./.mongo/data:/data/db
+  #     - ./.mongo/logs:/var/log/mongodb
+  #     - ./.mongo/init/:/docker-entrypoint-initdb.d/
+  #   networks:
+  #     - docker-internal
   
-  api_gateway:
-    hostname: api_gateway
-    container_name: api_gateway
-    build:
-      context: ./api
-    restart: on-failure
-    ports:
-      - 3030:3030
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017
-      - MONGO_DB=api
-      - PORT=3030
-    volumes:
-      - ./api:/app/
-      - /app/node_modules
-    depends_on:
-    - mongodb
-    networks:
-      - docker-internal
+  # api_gateway:
+  #   hostname: api_gateway
+  #   container_name: api_gateway
+  #   build:
+  #     context: ./api
+  #   restart: on-failure
+  #   ports:
+  #     - 3030:3030
+  #   environment:
+  #     - MONGO_URI=mongodb://mongodb:27017
+  #     - MONGO_DB=api
+  #     - PORT=3030
+  #   volumes:
+  #     - ./api:/app/
+  #     - /app/node_modules
+  #   depends_on:
+  #   - mongodb
+  #   networks:
+  #     - docker-internal
