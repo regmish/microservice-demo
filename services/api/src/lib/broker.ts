@@ -15,6 +15,10 @@ export const connectToAMQPBroker = async (): Promise<Connection | boolean> => {
       password,
     });
 
+    connection.on('close', (error) => {
+      console.log('Connectin to AMQP Broker closed abruptly, Exiting...', error.message);
+    });
+
     return connection
   } catch (error) {
     console.log('Error establishing connectin to AMQP Broker ', error.message);

@@ -1,7 +1,7 @@
+import { Channel, ConfirmChannel } from 'amqplib';
 import { Model } from 'mongoose';
 import { IApp } from '../../types';
 import CarsModel, { ICar } from './cars.model';
-
 export default class CarsService {
   private app: IApp;
   private Cars: Model<ICar>;
@@ -12,6 +12,10 @@ export default class CarsService {
   }
 
   async get(id: string): Promise<ICar> {
+    const AMQPBroker = this.app.get('AMQPBroker');
+
+    AMQPBroker.publish('', '', Buffer.from('hello World'));
+
     return this.Cars.findById(id);
   }
 

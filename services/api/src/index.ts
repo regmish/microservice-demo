@@ -3,7 +3,11 @@ import mongoose from 'mongoose';
 import toArray from 'lodash/toArray';
 import modules from './modules';
 import * as mw from './middlewares';
+import AMQPBroker from './lib/broker';
+
 import { IApp } from './types';
+
+require('dotenv').config();
 
 class Application {
   public app: IApp;
@@ -53,6 +57,10 @@ class Application {
     await this.initMiddlewares();
     await this.initDb();
     await this.initModules();
+
+    const AMQPChannel = await AMQPBroker();
+
+    this.app.set('AMQPChannel', AMQPChannel)
 
     this.app.listen(this.app.get('PORT'), () => {
       console.log(`API running on port ${this.app.get('PORT')}`);
