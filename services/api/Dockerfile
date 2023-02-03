@@ -1,10 +1,35 @@
-FROM node:14-alpine
+####################################################################
+## STAGE 1
+####################################################################
+FROM node:18.12.1 as builder
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
-COPY . .
+COPY ./package*.json /app/
 
-RUN npm install
-RUN npm run build
+# Be aware that the .npmrc file is not present in the final docker build stage.
+COPY ./.npmrc /app/
 
-CMD ["npm", "start"]
+RUN npm ci
+
+COPY . /app
+
+RUN npm run build \
+	&& npm run cleanup:build:production
+
+####################################################################
+## STAGE 2
+####################################################################
+FROM node:18.12.1-alpine3.16
+
+WORKDIR /app
+
+COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=builder /app/build /app/build
+COPY --from=builder /app/package.json /app/package.json
+
+USER node
+
+ENV NODE_ENV=production
+
+CMD [ "node", "/app/build/index" ]

@@ -21,21 +21,21 @@ services:
     networks:
       - docker-internal
   
-  # mongodb:
-  #   hostname: mongodb
-  #   container_name: mongodb
-  #   image: mongo:4.2
-  #   restart: on-failure
-  #   expose:
-  #     - 27017
-  #   ports:
-  #     - 27020:27017
-  #   volumes:
-  #     - ./.mongo/data:/data/db
-  #     - ./.mongo/logs:/var/log/mongodb
-  #     - ./.mongo/init/:/docker-entrypoint-initdb.d/
-  #   networks:
-  #     - docker-internal
+  mongodb:
+    hostname: mongodb
+    container_name: mongodb
+    image: mongo:4.2
+    restart: on-failure
+    expose:
+      - 27017
+    ports:
+      - 27020:27017
+    volumes:
+      - ./.mongo/data:/data/db
+      - ./.mongo/logs:/var/log/mongodb
+      - ./.mongo/init/:/docker-entrypoint-initdb.d/
+    networks:
+      - docker-internal
   
   # api_gateway:
   #   hostname: api_gateway
