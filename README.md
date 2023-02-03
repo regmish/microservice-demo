@@ -1,6 +1,6 @@
 ### TODO
 
-- [x] Initialize Services
+- [] Initialize Services
   - API Gateway
   - Users
     - Authorization using Redis
@@ -9,6 +9,6 @@
     - Multiple providers
   - Emails
 
-- [x] RPC Communication setup
-- [x] Monitoring & Observability (Prometheus & Grafana)
-- [x] ~~Deploy to K8S~~
+- [] RPC Communication setup
+- [] Monitoring & Observability (Prometheus & Grafana)
+- [] ~~Deploy to K8S~~
