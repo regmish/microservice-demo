@@ -2,10 +2,9 @@
 import type { Server } from "http";
 
 // /* Custom Modules */
+import ExpressServer from "./http/server";
 import logger from "./logger";
 import { PORT } from "./constants";
-import ExpressServer from "./http/server";
-// import { jwtAuthentication } from "./http/middlewares";
 
 // import { RabbitMQRepository } from "./repositories/rabbitMQ.repository";
 // import { RedisCacheRepository } from "./repositories/redisCache.repository";

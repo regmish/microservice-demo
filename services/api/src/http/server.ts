@@ -32,15 +32,10 @@ export default class HttpServer {
 				preload: true
 			}
 		};
-		/**
-		 * Disable not needed features
-		 */
+	
 		app.set("etag", false).set("x-powered-by", false);
-
 		app.use(httpLogger());
-
 		app.use(helmet(helmetOptions));
-
 		app.use(cors());
 		app.use(express.urlencoded({ extended: false }));
 		app.use(
@@ -53,7 +48,7 @@ export default class HttpServer {
 
 		app.options("*", cors());
 
-		app.get("/favicon.ico", (request, response) => {
+		app.get("/favicon.ico", (_, response) => {
 			response.status(HttpStatusCode.NOT_FOUND).send();
 		});
 
