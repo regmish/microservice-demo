@@ -1,5 +1,5 @@
 /* Node modules */
-import express, { NextFunction, Request, Response, Router } from "express";
+import express, { Router } from "express";
 import http from "http";
 import cors from "cors";
 import helmet, { HelmetOptions } from "helmet";
@@ -11,9 +11,8 @@ import HttpStatusCode from "http-status";
 require("express-async-errors");
 
 /* Custom modules */
-import { fallbackRouter, httpLogger } from "./middlewares";
+import { error, httpLogger } from "./middlewares";
 import { VERSION } from "../constants";
-import logger from "../logger";
 
 export interface IHttpServerInitilzeParams {
 	path: string;
@@ -72,20 +71,10 @@ export default class HttpServer {
 			app.use(path, ...middlewares, router);
 		});
 
-		/** Register fallback router */
-		app.use(fallbackRouter);
+		/** Register error handler middleware */
+		app.use(error.convert, error.fallback, error.handler);
 
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		app.use((err: Error, request: Request, response: Response, _next: NextFunction) => {
-			response
-				.json({
-					error: err.message
-				})
-				.status(HttpStatusCode.INTERNAL_SERVER_ERROR)
-				.send();
-			logger.error(err);
-		});
-
+		
 		http.createServer(app);
 
 		return app;
