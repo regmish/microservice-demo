@@ -3,6 +3,6 @@ import { Router, RequestHandler } from "express";
 
 export const fallbackRouter = Router();
 
-fallbackRouter.all("*", (req, res): RequestHandler => {
+fallbackRouter.all("*", (): RequestHandler => {
 	throw new Error("The requested operation or resource does not exist.");
 });

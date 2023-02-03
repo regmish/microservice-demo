@@ -75,7 +75,8 @@ export default class HttpServer {
 		/** Register fallback router */
 		app.use(fallbackRouter);
 
-		app.use((err: Error, request: Request, response: Response, next: NextFunction) => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		app.use((err: Error, request: Request, response: Response, _next: NextFunction) => {
 			response
 				.json({
 					error: err.message

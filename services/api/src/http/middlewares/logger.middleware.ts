@@ -12,8 +12,8 @@ interface IRequestMeta {
 	method: string;
 	startTime: number;
 	route: string;
-	params: any;
-	query: any;
+	params: unknown;
+	query: unknown;
 	organisationId?: string;
 	userId?: string;
 	userMail?: string;
@@ -44,7 +44,7 @@ export function createTraceId(prefix: string): string {
 /**
  * An express middleware that initializes traceId and disableSensitiveLogging.
  */
-export function httpLogger(options?: any): express.RequestHandler {
+export function httpLogger(options?: object): express.RequestHandler {
 	options = options || {};
 
 	if (options.constructor.name === "IncomingMessage") {
