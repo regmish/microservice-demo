@@ -6,31 +6,21 @@ import ExpressServer from "./http/server";
 import logger from "./logger";
 import { PORT } from "./constants";
 
-// import { RabbitMQRepository } from "./repositories/rabbitMQ.repository";
+import { RabbitMQRepository } from "./repositories/rabbitMQ.repository";
 // import { RedisCacheRepository } from "./repositories/redisCache.repository";
 
-// import { InsightsController } from "./controllers/insights.controller";
-// import { AnalyticsController } from "./controllers/analytics.controller";
-// import { ConversationsController } from "./controllers/conversations.controller";
-
-// import { MessagesReportsService } from "./services/insights/messages/messagesReports.service";
-// import { QuantitativeReportsService } from "./services/insights/quantitative/quantitativeReports.service";
-// import { StepsReportsService } from "./services/insights/steps/stepsReports.service";
-// import { GoalsReportsService } from "./services/insights/goals/goalsReports.service";
-// import { TranscriptsReportsService } from "./services/insights/transcripts/transcriptsReports.service";
-// import { AnalyticsService } from "./services/analytics/analytics.service";
-// import { ConversationsService } from "./services/conversations/conversations.service";
+import { UserController } from "./controllers/user.controller";
 
 export const startHttpServer = async (): Promise<Server> => {
 	/** Start health-check endpoint */
 
-	// const rabbitMQRepository = new RabbitMQRepository();
+	const rabbitMQRepository = new RabbitMQRepository();
 	// const redisCacheRepository = new RedisCacheRepository();
 
 	// await redisCacheRepository.initialize();
-	// await rabbitMQRepository.initialize();
+	await rabbitMQRepository.initialize();
 
-	// const insightsCtrl = new InsightsController(
+	const userCtrl = new UserController();
 	// 	new QuantitativeReportsService(redisCacheRepository, rabbitMQRepository),
 	// 	new MessagesReportsService(redisCacheRepository, rabbitMQRepository),
 	// 	new TranscriptsReportsService(redisCacheRepository, rabbitMQRepository),
@@ -54,11 +44,11 @@ export const startHttpServer = async (): Promise<Server> => {
 		// 	router: analyticsCtrl.v2Routes(),
 		// 	middlewares: [jwtAuthentication]
 		// },
-		// {
-		// 	path: "/v2.0/conversations",
-		// 	router: conversationsCtrl.v2Routes(),
-		// 	middlewares: [jwtAuthentication]
-		// }
+		{
+			path: "/v1.0/users",
+			router: userCtrl.routes(),
+			middlewares: []
+		}
 	]);
 
 	const serverInstance = expressApp.listen(PORT, () => {

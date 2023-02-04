@@ -55,7 +55,7 @@ export default class HttpServer {
 		app.get("/", (_, res) => {
 			res
 				.json({
-					name: "API",
+					message: "API Gateway is up and running!",
 					version: VERSION
 				})
 				.send();
