@@ -1,4 +1,4 @@
-export * from "./amqp/amqpClient";
+export * from "./types";
 
-/** Interfaces and Types */
-export * from "./interfaces";
+/** AMQPClient */
+export * from "./amqp/amqpClient";

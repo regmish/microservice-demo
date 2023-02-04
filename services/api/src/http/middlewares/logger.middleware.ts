@@ -1,10 +1,10 @@
 /* Node Modules */
-import express from "express";
-import * as uuid from "uuid";
+import express from 'express';
+import * as uuid from 'uuid';
 
 /* Custom modules */
-import logger from "../../logger";
-import { SERVICE_PREFIX } from "../../constants";
+import logger from '../../logger';
+import { SERVICE_PREFIX } from '../../constants';
 
 interface IRequestMeta {
 	originalUrl: string;
@@ -19,7 +19,7 @@ interface IRequestMeta {
 	userMail?: string;
 }
 
-declare module "express" {
+declare module 'express' {
 	export interface Response {
 		requestmeta: IRequestMeta;
 	}
@@ -47,9 +47,9 @@ export function createTraceId(prefix: string): string {
 export function httpLogger(options?: object): express.RequestHandler {
 	options = options || {};
 
-	if (options.constructor.name === "IncomingMessage") {
+	if (options.constructor.name === 'IncomingMessage') {
 		throw new Error(
-			"It appears you have done something like `app.use(httpLogger)`, but it should be `app.use(httpLogger())`."
+			'It appears you have done something like `app.use(httpLogger)`, but it should be `app.use(httpLogger())`.'
 		);
 	}
 
@@ -70,11 +70,11 @@ export function httpLogger(options?: object): express.RequestHandler {
 			query: request.query
 		};
 
-		response.set("x-APP-Trace-Id", request.traceId);
-		if (request.method !== "OPTIONS") {
+		response.set('x-APP-Trace-Id', request.traceId);
+		if (request.method !== 'OPTIONS') {
 			logger.info(
 				{ traceId: request.traceId, ...response.requestmeta },
-				"Received new request"
+				'Received new request'
 			);
 		}
 		return next();

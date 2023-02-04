@@ -1,15 +1,15 @@
-import { NextFunction, Request, Response } from "express";
-import httpStatus from "http-status";
-import logger from "../../logger";
-import APIError from "../apiError";
+import { NextFunction, Request, Response } from 'express';
+import httpStatus from 'http-status';
+import logger from '../../logger';
+import APIError from '../apiError';
 
 const convert = (err: APIError, req: Request, res: Response, next: NextFunction) => {
 	let convertedError = err;
 
 	if (!(err instanceof APIError)) {
 		convertedError = new APIError({
-			message: err["message"],
-			status: err["status"]
+			message: err['message'],
+			status: err['status']
 		});
 	}
 
@@ -18,7 +18,7 @@ const convert = (err: APIError, req: Request, res: Response, next: NextFunction)
 
 const fallback = (req: Request, res: Response, next: NextFunction) => {
 	const err = new APIError({
-		message: "The requested operation or resource does not exist.",
+		message: 'The requested operation or resource does not exist.',
 		status: httpStatus.NOT_FOUND
 	});
 
@@ -34,7 +34,7 @@ const handler = (err: APIError, req: Request, res: Response, _next: NextFunction
 		stack: err.stack
 	};
 
-	if (process.env.NODE_ENV !== "development") {
+	if (process.env.NODE_ENV !== 'development') {
 		delete error.stack;
 	}
 
@@ -46,4 +46,4 @@ export const error = {
 	convert,
 	fallback,
 	handler
-}
+};

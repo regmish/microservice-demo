@@ -1,9 +1,9 @@
 {
-  "name": "msdemo-common",
-  "version": "1.0.1",
-  "description": "Common Package and Interfaces for Micorservice Demo",
+  "name": "@shankarregmi/common",
+  "version": "1.0.2",
+  "description": "Common Package and Interfaces",
   "main": "build/index.js",
-  "types": "build/interfaces/index.d.ts",
+  "types": "build/index.d.ts",
   "scripts": {
     "release": "npm run build && standard-version",
     "prepublishOnly": "npm run build",

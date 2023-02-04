@@ -1,18 +1,18 @@
 /* Node modules */
-import express, { Router } from "express";
-import http from "http";
-import cors from "cors";
-import helmet, { HelmetOptions } from "helmet";
-import HttpStatusCode from "http-status";
+import express, { Router } from 'express';
+import http from 'http';
+import cors from 'cors';
+import helmet, { HelmetOptions } from 'helmet';
+import HttpStatusCode from 'http-status';
 /**
  * This takes care of async error handling in any of the express middlewares,
  * that are uncaught. Starting express.js v5.0 this is no more needed
  */
-require("express-async-errors");
+require('express-async-errors');
 
 /* Custom modules */
-import { error, httpLogger } from "./middlewares";
-import { VERSION } from "../constants";
+import { error, httpLogger } from './middlewares';
+import { VERSION } from '../constants';
 
 export interface IHttpServerInitilzeParams {
 	path: string;
@@ -33,7 +33,7 @@ export default class HttpServer {
 			}
 		};
 	
-		app.set("etag", false).set("x-powered-by", false);
+		app.set('etag', false).set('x-powered-by', false);
 		app.use(httpLogger());
 		app.use(helmet(helmetOptions));
 		app.use(cors());
@@ -42,20 +42,20 @@ export default class HttpServer {
 			express.json({
 				limit: process.env.HTTP_JSON_BODY_LIMIT
 					? `${process.env.HTTP_JSON_BODY_LIMIT}kb`
-					: "100kb"
+					: '100kb'
 			})
 		);
 
-		app.options("*", cors());
+		app.options('*', cors());
 
-		app.get("/favicon.ico", (_, response) => {
+		app.get('/favicon.ico', (_, response) => {
 			response.status(HttpStatusCode.NOT_FOUND).send();
 		});
 
-		app.get("/", (_, res) => {
+		app.get('/', (_, res) => {
 			res
 				.json({
-					message: "API Gateway is up and running!",
+					message: 'API Gateway is up and running!',
 					version: VERSION
 				})
 				.send();

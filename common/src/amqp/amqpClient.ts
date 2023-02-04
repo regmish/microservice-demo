@@ -1,17 +1,31 @@
 import amqp from "amqplib";
 import fs from "fs";
-import uuid from "uuid";
-import { IMessageBrokerRepository } from "../interfaces/IMessageBrokerRepository";
+import { v4 as uuidv4 } from "uuid";
 
-export interface IRPCCalls {
-	[key: string]: (message: any) => Promise<any>;
-}
+/** Types */
+import {
+	IAMQPRPCHandlers,
+	IAMQPRPCPayload,
+	IMessageBrokerRepository
+} from "../types/IMessageBrokerRepository";
 
 export class AMQPCLient implements IMessageBrokerRepository {
-	private _connection: amqp.Connection;
-	private _channel: amqp.Channel;
+	private _connection!: amqp.Connection;
+	private _channel!: amqp.Channel;
+	private _replyToQueue!: string;
+
+	private _handlerMappings = new Map<
+		string,
+		{
+			resolve: (value: unknown) => void;
+			reject: (reason?: any) => void;
+		}
+	>();
 
 	public async initialize(): Promise<void> {
+		if (this._connection && this._channel)
+			throw new Error("AMQP connection already initialized");
+
 		this._connection = await amqp.connect(await this._buildConnectionString());
 
 		this._connection.on("error", this._handleConnectionError.bind(this));
@@ -24,7 +38,7 @@ export class AMQPCLient implements IMessageBrokerRepository {
 		rpcHandlers
 	}: {
 		rpcQueue: string;
-		rpcHandlers: IRPCCalls;
+		rpcHandlers: IAMQPRPCHandlers;
 	}): Promise<void> {
 		if (!this._channel) throw new Error("AMQP channel not initialized");
 
@@ -33,11 +47,49 @@ export class AMQPCLient implements IMessageBrokerRepository {
 		}); /** @todo make it configurable */
 
 		await this._channel.prefetch(5);
-
 		(async () => {
-			await this._channel.consume(rpcQueue, (message: amqp.ConsumeMessage | null) =>
-				this._genericConsumeFunction(rpcHandlers, message)
-			);
+			await this._channel.consume(rpcQueue, async (message: amqp.ConsumeMessage | null) => {
+				if (!message) return;
+
+				const { content, properties } = message;
+
+				const { correlationId, replyTo } = properties;
+
+				const { type, data } = JSON.parse(content.toString());
+
+				if (!rpcHandlers[type]) {
+					console.error(`RPC Call ${type} not registered`);
+					this._channel.sendToQueue(replyTo, Buffer.from(JSON.stringify({
+						error: "RPC Call not registered"
+					})), {
+						correlationId
+					});
+					return;
+				}
+
+				try {
+					const result = await rpcHandlers[type](data);
+
+					this._channel.sendToQueue(replyTo, Buffer.from(JSON.stringify(result)), {
+						correlationId
+					});
+
+					this._channel.ack(message);
+				} catch (err) {
+					const serializedError = {
+						error: "Unknown Error"
+					};
+					if (err instanceof Error) {
+						serializedError.error = err.message;
+					}
+
+					this._channel.sendToQueue(replyTo, Buffer.from(JSON.stringify(serializedError)), {
+						correlationId
+					});
+
+					this._channel.ack(message);
+				}
+			});
 		})().catch((err) => {
 			console.error(`Error consuming Message from Queue ${rpcQueue}`, err);
 		});
@@ -48,16 +100,25 @@ export class AMQPCLient implements IMessageBrokerRepository {
 		payload
 	}: {
 		rpcQueue: string;
-		payload: any;
-	}): Promise<any> {
+		payload: IAMQPRPCPayload;
+	}): Promise<unknown> {
 		if (!this._channel) throw new Error("AMQP channel not initialized");
-		return this._executeRPCInternal({
-			rpcQueue,
-            payload
+
+		if (!this._replyToQueue) {
+			await this._registerCallbackQueue();
+		}
+
+		return new Promise((resolve, reject) => {
+			const correlationId = uuidv4();
+
+			this._handlerMappings.set(correlationId, { resolve, reject });
+
+			this._channel.sendToQueue(rpcQueue, Buffer.from(JSON.stringify(payload)), {
+				correlationId,
+				replyTo: this._replyToQueue
+			});
 		});
 	}
-
-	/** Helper Methods */
 
 	/** Build connection string either from secret file mounted or env variables */
 	private async _buildConnectionString(): Promise<string> {
@@ -97,75 +158,39 @@ export class AMQPCLient implements IMessageBrokerRepository {
 		console.error(`AMQP connection closed`);
 	}
 
-	private async _genericConsumeFunction(
-		rpcCalls: IRPCCalls,
-		message: amqp.ConsumeMessage | null
-	): Promise<void> {
-		if (!message) return;
+	private async _registerCallbackQueue(): Promise<void> {
+		const replyQueueName = `rpc-reply-${uuidv4()}`;
 
-		const { content, properties } = message;
+		this._replyToQueue = (
+			await this._channel.assertQueue(replyQueueName, {
+				autoDelete: true,
+				durable: false,
+				messageTtl: 10000
+			})
+		).queue;
 
-		const { correlationId, replyTo } = properties;
-
-		const { type, data } = JSON.parse(content.toString());
-
-		if (!rpcCalls[type]) {
-			console.error(`RPC Call ${type} not registered`);
-			return;
-		}
-
-		try {
-			const result = await rpcCalls[type](data);
-
-			this._channel.sendToQueue(replyTo, Buffer.from(JSON.stringify(result)), {
-				correlationId
-			});
-
-			this._channel.ack(message);
-		} catch (error) {
-			console.error(`Error executing RPC Call ${type}`, error);
-
-			this._channel.sendToQueue(replyTo, Buffer.from(JSON.stringify(error)), {
-				correlationId
-			});
-
-			this._channel.ack(message);
-		}
-	}
-
-	private async _executeRPCInternal({ rpcQueue, payload }) {
-        const { queue: replyToQueue } = await this._channel.assertQueue("", { exclusive: true });
-        const correlationId = uuid.v4();
-
-		return new Promise(async (resolve, reject) => {
+		(async () => {
 			await this._channel.consume(
-				replyToQueue,
-				(message: amqp.ConsumeMessage | null) => {
-					if (!message) return;
+				this._replyToQueue,
+				async (message: amqp.ConsumeMessage | null) => {
+					if (message?.properties?.correlationId) {
+						const correlationId = message.properties.correlationId;
 
-					const { content, properties } = message;
+						const rpcHandler = this._handlerMappings.get(correlationId);
 
-					const { correlationId: responseCorrelationId } = properties;
+						const rpcResponse = JSON.parse(message.content.toString());
 
-					if (correlationId === responseCorrelationId) {
-						const { error, result } = JSON.parse(content.toString());
-
-						if (error) {
-							reject(error);
+						if (rpcResponse?.error) {
+							rpcHandler?.reject(rpcResponse.error);
 						} else {
-							resolve(result);
+							rpcHandler?.resolve(rpcResponse);
 						}
 					}
-
-					this._channel.ack(message);
 				},
-				{ noAck: false }
+				{ noAck: true }
 			);
-
-			this._channel.sendToQueue(rpcQueue, Buffer.from(JSON.stringify(payload)), {
-				correlationId,
-				replyTo: replyToQueue
-			});
+		})().catch((err) => {
+			console.error(`Error consuming Message from Queue ${this._replyToQueue}`, err);
 		});
 	}
 }

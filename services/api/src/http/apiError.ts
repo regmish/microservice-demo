@@ -1,4 +1,4 @@
-import httpStatus from "http-status";
+import httpStatus from 'http-status';
 
 export default class APIError extends Error {
 	status: number;
