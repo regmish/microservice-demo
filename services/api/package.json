@@ -21,6 +21,7 @@
     "helmet": "5.0.2",
     "http-status": "1.5.1",
     "jsonwebtoken": "9.0.0",
+    "msdemo-common": "^1.0.1",
     "pino": "8.8.0",
     "pino-pretty": "9.1.1",
     "uuid": "9.0.0"

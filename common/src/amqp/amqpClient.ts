@@ -7,7 +7,7 @@ export interface IRPCCalls {
 	[key: string]: (message: any) => Promise<any>;
 }
 
-export default class AMQPCLient implements IMessageBrokerRepository {
+export class AMQPCLient implements IMessageBrokerRepository {
 	private _connection: amqp.Connection;
 	private _channel: amqp.Channel;
 

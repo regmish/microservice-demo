@@ -1,4 +1,4 @@
-import { IMessageBrokerRepository } from "../interfaces/IMessageBrokerRepository";
+import { IMessageBrokerRepository } from "msdemo-common";
 import logger from "../logger";
 
 export class RabbitMQRepository implements IMessageBrokerRepository {

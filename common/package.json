@@ -1,12 +1,13 @@
 {
-  "name": "common",
-  "version": "1.0.0",
+  "name": "msdemo-common",
+  "version": "1.0.1",
   "description": "Common Package and Interfaces for Micorservice Demo",
-  "main": "index.ts",
+  "main": "build/index.js",
+  "types": "build/interfaces/index.d.ts",
   "scripts": {
     "release": "npm run build && standard-version",
     "prepublishOnly": "npm run build",
-    "build": "npm run lint && tsc",
+    "build": "npm run lint && tsc -p tsconfig.production.json",
     "lint": "eslint src",
     "lint-fix": "eslint src --fix"
   },
@@ -26,5 +27,8 @@
     "standard-version": "^9.5.0",
     "ts-node": "10.7.0",
     "typescript": "4.6"
-  }
+  },
+  "files": [
+    "build/**/*"
+  ]
 }
