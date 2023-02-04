@@ -1,8 +1,7 @@
 {
   "name": "common",
-  "private": true,
   "version": "1.0.0",
-  "description": "Common Package and Interfaces",
+  "description": "Common Package and Interfaces for Micorservice Demo",
   "main": "index.ts",
   "scripts": {
     "release": "npm run build && standard-version",
