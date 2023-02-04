@@ -7,15 +7,11 @@ WORKDIR /app
 
 COPY ./package*.json /app/
 
-# Be aware that the .npmrc file is not present in the final docker build stage.
-COPY ./.npmrc /app/
-
 RUN npm ci
 
-COPY . /app
+COPY . /app/
 
-RUN npm run build \
-	&& npm run cleanup:build:production
+RUN npm run build
 
 ####################################################################
 ## STAGE 2
@@ -32,4 +28,4 @@ USER node
 
 ENV NODE_ENV=production
 
-CMD [ "node", "/app/build/index" ]
+# ENTRYPOINT [ "node", "/app/build/index" ]
