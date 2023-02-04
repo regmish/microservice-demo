@@ -1,35 +1,30 @@
 import amqp from "amqplib";
 import fs from "fs";
 import uuid from "uuid";
-
-export interface IAMQPClient {
-	initConnection(): Promise<amqp.Channel>;
-}
+import { IMessageBrokerRepository } from "../interfaces/IMessageBrokerRepository";
 
 export interface IRPCCalls {
 	[key: string]: (message: any) => Promise<any>;
 }
 
-export default class AMQPCLient implements IAMQPClient {
+export default class AMQPCLient implements IMessageBrokerRepository {
 	private _connection: amqp.Connection;
 	private _channel: amqp.Channel;
 
-	public async initConnection(): Promise<amqp.Channel> {
+	public async initialize(): Promise<void> {
 		this._connection = await amqp.connect(await this._buildConnectionString());
 
 		this._connection.on("error", this._handleConnectionError.bind(this));
 		this._connection.on("close", this._handleConnectionClose.bind(this));
 		this._channel = await this._connection.createChannel();
-
-		return this._channel;
 	}
 
-	public async registerRPCCalls({
+	public async registerRPCHandlers({
 		rpcQueue,
-		rpcCalls
+		rpcHandlers
 	}: {
 		rpcQueue: string;
-		rpcCalls: IRPCCalls;
+		rpcHandlers: IRPCCalls;
 	}): Promise<void> {
 		if (!this._channel) throw new Error("AMQP channel not initialized");
 
@@ -41,7 +36,7 @@ export default class AMQPCLient implements IAMQPClient {
 
 		(async () => {
 			await this._channel.consume(rpcQueue, (message: amqp.ConsumeMessage | null) =>
-				this._genericConsumeFunction(rpcCalls, message)
+				this._genericConsumeFunction(rpcHandlers, message)
 			);
 		})().catch((err) => {
 			console.error(`Error consuming Message from Queue ${rpcQueue}`, err);
@@ -141,8 +136,9 @@ export default class AMQPCLient implements IAMQPClient {
 	private async _executeRPCInternal({ rpcQueue, payload }) {
         const { queue: replyToQueue } = await this._channel.assertQueue("", { exclusive: true });
         const correlationId = uuid.v4();
-		return new Promise((resolve, reject) => {
-			this._channel.consume(
+
+		return new Promise(async (resolve, reject) => {
+			await this._channel.consume(
 				replyToQueue,
 				(message: amqp.ConsumeMessage | null) => {
 					if (!message) return;

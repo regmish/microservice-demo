@@ -1,4 +1,0 @@
-/**
- * Common Package and Interfaces
- */
-

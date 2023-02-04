@@ -5,10 +5,11 @@
   "description": "Common Package and Interfaces",
   "main": "index.ts",
   "scripts": {
-    "build": "npm run build:production",
-    "build:production": "rimraf ./build && tsc -p tsconfig.production.json",
-    "fix": "eslint --fix '**/*.ts'",
-    "lint": "eslint ."
+    "release": "npm run build && standard-version",
+    "prepublishOnly": "npm run build",
+    "build": "npm run lint && tsc",
+    "lint": "eslint src",
+    "lint-fix": "eslint src --fix"
   },
   "dependencies": {
     "amqplib": "^0.10.3",
@@ -23,6 +24,7 @@
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-node": "11.1.0",
     "eslint-plugin-prettier": "4.0.0",
+    "standard-version": "^9.5.0",
     "ts-node": "10.7.0",
     "typescript": "4.6"
   }
