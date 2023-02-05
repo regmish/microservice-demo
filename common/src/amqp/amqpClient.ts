@@ -7,7 +7,6 @@ import { logger } from '../logger/logger';
 import {
   IMessageBrokerInitializeOptions,
   IMessageBrokerRPCHandlers,
-  IMessageBrokerRPCPayload,
   IMessageBrokerRepository,
 } from '../types/IMessageBrokerRepository';
 
@@ -69,10 +68,10 @@ export class AMQPClient implements IMessageBrokerRepository {
 
           const { correlationId, replyTo } = properties;
 
-          const { type, data } = JSON.parse(content.toString());
+          const { method, params } = JSON.parse(content.toString());
 
-          if (!rpcHandlers[type]) {
-            console.error(`RPC Call ${type} not registered`);
+          if (!rpcHandlers[method]) {
+            console.error(`RPC Call ${method} not registered`);
             this._channel.sendToQueue(
               replyTo,
               Buffer.from(
@@ -88,7 +87,7 @@ export class AMQPClient implements IMessageBrokerRepository {
           }
 
           try {
-            const result = await rpcHandlers[type](data);
+            const result = await rpcHandlers[method](params);
 
             this._channel.sendToQueue(
               replyTo,
@@ -120,16 +119,21 @@ export class AMQPClient implements IMessageBrokerRepository {
         }
       );
     })().catch((err) => {
-      console.error(`Error consuming Message from Queue ${this._rpcQueue}`, err);
+      console.error(
+        `Error consuming Message from Queue ${this._rpcQueue}`,
+        err
+      );
     });
   }
 
-  public async executeRPC({
-    rpcQueue,
-    payload,
+  public async callRPC({
+    targetQueue,
+    method,
+    params,
   }: {
-    rpcQueue: string;
-    payload: IMessageBrokerRPCPayload;
+    targetQueue: string;
+    method: string;
+    params: any;
   }): Promise<unknown> {
     if (!this._channel) throw new Error('AMQP channel not initialized');
 
@@ -143,8 +147,8 @@ export class AMQPClient implements IMessageBrokerRepository {
       this._handlerMappings.set(correlationId, { resolve, reject });
 
       this._channel.sendToQueue(
-        rpcQueue,
-        Buffer.from(JSON.stringify(payload)),
+        targetQueue,
+        Buffer.from(JSON.stringify({ method, params })),
         {
           correlationId,
           replyTo: this._replyToQueue,

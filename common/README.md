@@ -26,8 +26,8 @@
 
         ```typescript
             rabbitMQClient.callRPC({
-                targetQueue: 'users,
-                procedure: 'getUsers',
+                targetQueue: 'users',
+                method: 'getUsers',
                 params: {
                     active: true,
                 }

@@ -10,12 +10,14 @@ export interface IMessageBrokerRepository {
   }: {
     rpcHandlers: IMessageBrokerRPCHandlers;
   }): Promise<void>;
-  executeRPC({
-    rpcQueue,
-    payload,
+  callRPC({
+    targetQueue,
+    method,
+    params
   }: {
-    rpcQueue: string;
-    payload: IMessageBrokerRPCPayload;
+    targetQueue: string;
+    method: string;
+    params: any;
   }): Promise<any>;
 }
 
@@ -25,11 +27,7 @@ export interface IMessageBrokerInitializeOptions {
     options?: Options.AssertQueue;
   };
 }
-export interface IMessageBrokerRPCPayload {
-  type: string;
-  data: any;
-}
 
 export interface IMessageBrokerRPCHandlers {
-  [key: string]: (payload: IMessageBrokerRPCPayload) => Promise<any>;
+  [key: string]: (params: any) => Promise<any>;
 }
