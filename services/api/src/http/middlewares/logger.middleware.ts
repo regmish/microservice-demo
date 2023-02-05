@@ -1,9 +1,8 @@
 /* Node Modules */
 import express from 'express';
 import * as uuid from 'uuid';
-
+import { logger } from '@shankarregmi/common';
 /* Custom modules */
-import logger from '../../logger';
 import { SERVICE_PREFIX } from '../../constants';
 
 interface IRequestMeta {

@@ -1,9 +1,9 @@
 // /* Node modules*/
 import type { Server } from 'http';
+import { logger } from '@shankarregmi/common';
 
 // /* Custom Modules */
 import ExpressServer from './http/server';
-import logger from './logger';
 import { PORT } from './constants';
 
 import { RabbitMQRepository } from './repositories/rabbitMQ.repository';

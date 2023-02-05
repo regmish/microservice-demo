@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import httpStatus from 'http-status';
-import logger from '../../logger';
+import { logger } from '@shankarregmi/common';
 import APIError from '../apiError';
 
 const convert = (err: APIError, req: Request, res: Response, next: NextFunction) => {

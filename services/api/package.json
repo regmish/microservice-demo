@@ -13,7 +13,7 @@
     "test": "jest -i"
   },
   "dependencies": {
-    "@shankarregmi/common": "^1.0.2",
+    "@shankarregmi/common": "^1.1.0",
     "ajv": "6.12.6",
     "cors": "2.8.5",
     "dotenv": "16.0.0",
@@ -22,8 +22,6 @@
     "helmet": "5.0.2",
     "http-status": "1.5.1",
     "jsonwebtoken": "9.0.0",
-    "pino": "8.8.0",
-    "pino-pretty": "9.1.1",
     "uuid": "9.0.0"
   },
   "devDependencies": {
