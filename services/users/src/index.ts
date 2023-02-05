@@ -1,7 +1,7 @@
-import { AMQPCLient, logger } from '@shankarregmi/common';
+import { AMQPClient, logger } from '@shankarregmi/common';
 import { getUsers } from './controllers/user.controller';
 
-const amqpClient = new AMQPCLient();
+const amqpClient = new AMQPClient();
 
 (async () => {
   await amqpClient.initialize({

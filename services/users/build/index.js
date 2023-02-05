@@ -24,7 +24,7 @@ const amqpClient = new common_1.AMQPCLient();
     common_1.logger.info({}, 'Users service started');
     yield amqpClient.registerRPCHandlers({
         rpcHandlers: {
-            listUsers: user_controller_1.getUsers,
+            getUsers: user_controller_1.getUsers,
         },
     });
 }))();
