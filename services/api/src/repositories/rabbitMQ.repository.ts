@@ -1,3 +1,3 @@
-import { AMQPCLient } from '@shankarregmi/common';
+import { AMQPClient } from '@shankarregmi/common';
 
-export class RabbitMQRepository extends AMQPCLient {}
+export class RabbitMQRepository extends AMQPClient {}
