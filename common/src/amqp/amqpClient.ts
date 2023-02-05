@@ -1,28 +1,33 @@
 import amqp from 'amqplib';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from '../logger/logger';
 
 /** Types */
 import {
-  IAMQPRPCHandlers,
-  IAMQPRPCPayload,
+  IMessageBrokerInitializeOptions,
+  IMessageBrokerRPCHandlers,
+  IMessageBrokerRPCPayload,
   IMessageBrokerRepository,
 } from '../types/IMessageBrokerRepository';
 
 export class AMQPCLient implements IMessageBrokerRepository {
   private _connection!: amqp.Connection;
   private _channel!: amqp.Channel;
+  private _rpcQueue!: string;
   private _replyToQueue!: string;
 
   private _handlerMappings = new Map<
     string,
     {
-      resolve: (value: unknown) => void;
+      resolve: (data: unknown) => void;
       reject: (reason?: any) => void;
     }
   >();
 
-  public async initialize(): Promise<void> {
+  public async initialize(
+    options?: IMessageBrokerInitializeOptions
+  ): Promise<void> {
     if (this._connection && this._channel)
       throw new Error('AMQP connection already initialized');
 
@@ -31,25 +36,32 @@ export class AMQPCLient implements IMessageBrokerRepository {
     this._connection.on('error', this._handleConnectionError.bind(this));
     this._connection.on('close', this._handleConnectionClose.bind(this));
     this._channel = await this._connection.createChannel();
+
+    if (options?.rpcQueue) {
+      const { name: rpcQueue, options: rpcQueueOptions } = options.rpcQueue;
+      await this._channel.assertQueue(rpcQueue, rpcQueueOptions);
+      this._rpcQueue = rpcQueue;
+      logger.info(`Waiting for RPC requests on queue ${rpcQueue}`);
+    }
   }
 
   public async registerRPCHandlers({
-    rpcQueue,
     rpcHandlers,
   }: {
-    rpcQueue: string;
-    rpcHandlers: IAMQPRPCHandlers;
+    rpcHandlers: IMessageBrokerRPCHandlers;
   }): Promise<void> {
     if (!this._channel) throw new Error('AMQP channel not initialized');
 
-    await this._channel.assertQueue(rpcQueue, {
-      durable: true,
-    }); /** @todo make it configurable */
+    if (!this._rpcQueue)
+      throw new Error(
+        'RPC Queue not initialized. Please initialize AMQP with rpcQueue option'
+      );
 
     await this._channel.prefetch(5);
+
     (async () => {
       await this._channel.consume(
-        rpcQueue,
+        this._rpcQueue,
         async (message: amqp.ConsumeMessage | null) => {
           if (!message) return;
 
@@ -108,7 +120,7 @@ export class AMQPCLient implements IMessageBrokerRepository {
         }
       );
     })().catch((err) => {
-      console.error(`Error consuming Message from Queue ${rpcQueue}`, err);
+      console.error(`Error consuming Message from Queue ${this._rpcQueue}`, err);
     });
   }
 
@@ -117,7 +129,7 @@ export class AMQPCLient implements IMessageBrokerRepository {
     payload,
   }: {
     rpcQueue: string;
-    payload: IAMQPRPCPayload;
+    payload: IMessageBrokerRPCPayload;
   }): Promise<unknown> {
     if (!this._channel) throw new Error('AMQP channel not initialized');
 

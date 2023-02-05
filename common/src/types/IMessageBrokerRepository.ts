@@ -1,30 +1,35 @@
+import { Options } from 'amqplib';
 /**
  * @interface IMessageBrokerRepository
  */
 
 export interface IMessageBrokerRepository {
-    initialize(): Promise<void>;
-    registerRPCHandlers({
-        rpcQueue,
-        rpcHandlers
-    }: {
-        rpcQueue: string;
-        rpcHandlers: IAMQPRPCHandlers;
-    }): Promise<void>;
-    executeRPC({
-        rpcQueue,
-        payload
-    }: {
-        rpcQueue: string;
-        payload: IAMQPRPCPayload;
-    }): Promise<any>;
+  initialize(options?: IMessageBrokerInitializeOptions): Promise<void>;
+  registerRPCHandlers({
+    rpcHandlers,
+  }: {
+    rpcHandlers: IMessageBrokerRPCHandlers;
+  }): Promise<void>;
+  executeRPC({
+    rpcQueue,
+    payload,
+  }: {
+    rpcQueue: string;
+    payload: IMessageBrokerRPCPayload;
+  }): Promise<any>;
 }
 
-export interface IAMQPRPCPayload {
-    type: string;
-    data: any;
+export interface IMessageBrokerInitializeOptions {
+  rpcQueue?: {
+    name: string;
+    options?: Options.AssertQueue;
+  };
+}
+export interface IMessageBrokerRPCPayload {
+  type: string;
+  data: any;
 }
 
-export interface IAMQPRPCHandlers {
-	[key: string]: (payload: IAMQPRPCPayload) => Promise<any>;
+export interface IMessageBrokerRPCHandlers {
+  [key: string]: (payload: IMessageBrokerRPCPayload) => Promise<any>;
 }
