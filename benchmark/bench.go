@@ -3,10 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
 	"sync"
+	"time"
 
 	uuid "github.com/satori/go.uuid"
 )
@@ -24,6 +26,12 @@ func Benchmark() error {
 
 	if API_HOST == "" {
 		API_HOST = "http://localhost:8000/"
+	}
+
+	_, err := net.DialTimeout("tcp", "localhost:8000", 1*time.Second)
+	if err != nil {
+		fmt.Println("Error running benchmark. Service API not reachable", err.Error())
+		os.Exit(0)
 	}
 
 	MAX_GO_ROUTINES, _ := strconv.Atoi(os.Getenv("MAX_GO_ROUTINES"))
