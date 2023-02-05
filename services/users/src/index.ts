@@ -1,30 +1,22 @@
 import { AMQPCLient, logger } from '@shankarregmi/common';
+import { getUsers } from './controllers/user.controller';
 
 const amqpClient = new AMQPCLient();
 
 (async () => {
-  await amqpClient.initialize();
+  await amqpClient.initialize({
+    rpcQueue: {
+      name: 'users',
+      options: {
+        durable: true,
+      },
+    },
+  });
 
   logger.info({}, 'Users service started');
   await amqpClient.registerRPCHandlers({
-    rpcQueue: 'users',
     rpcHandlers: {
-      listUsers: async (data) => {
-        console.log('Received RPC call for listUsers ', JSON.stringify(data));
-
-        return {
-          users: [
-            {
-              name: 'Shankar Regmi',
-              age: 30,
-            },
-            {
-              name: 'Hasan Khadar',
-              age: 30,
-            },
-          ],
-        };
-      },
+      listUsers: getUsers,
     },
   });
 })();
