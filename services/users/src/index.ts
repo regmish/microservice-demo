@@ -1,10 +1,11 @@
-import { AMQPCLient } from '@shankarregmi/common';
+import { AMQPCLient, logger } from '@shankarregmi/common';
 
 const amqpClient = new AMQPCLient();
 
 (async () => {
   await amqpClient.initialize();
 
+  logger.info({}, 'Users service started');
   await amqpClient.registerRPCHandlers({
     rpcQueue: 'users',
     rpcHandlers: {

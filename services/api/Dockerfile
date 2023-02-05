@@ -28,4 +28,4 @@ USER node
 
 ENV NODE_ENV=production
 
-# ENTRYPOINT [ "node", "/app/build/index" ]
+CMD [ "node", "/app/build/index" ]
