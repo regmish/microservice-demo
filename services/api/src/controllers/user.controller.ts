@@ -16,8 +16,9 @@ export class UserController extends BaseController {
 
 	private async getUsers(req: Request, res: Response) {
 		try {
-			const users = await this.userService.getUsers();
-			res.status(200).json({ users });
+      const { userId } = req.query;
+			const users = await this.userService.getUsers(userId.toString());
+			res.status(200).json(users);
 		} catch (error) {
 			res.status(500).json({ error });
 		}

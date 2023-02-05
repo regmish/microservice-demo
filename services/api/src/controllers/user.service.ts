@@ -4,12 +4,12 @@ import { IUser } from '../interfaces/IUser';
 export class UserService {
     constructor(private rabbitMQRepository: IMessageBrokerRepository) {}
 
-    public async getUsers(): Promise<IUser[]> {
+    public async getUsers(userId: string): Promise<IUser[]> {
         const users: IUser[] = await this.rabbitMQRepository.callRPC({
             targetQueue: 'users',
             method: 'getUsers',
             params: {
-               active: true
+               userId
             }
         });
 
