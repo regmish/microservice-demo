@@ -16,7 +16,7 @@ const amqpClient = new AMQPCLient();
   logger.info({}, 'Users service started');
   await amqpClient.registerRPCHandlers({
     rpcHandlers: {
-      listUsers: getUsers,
+      getUsers: getUsers,
     },
   });
 })();
