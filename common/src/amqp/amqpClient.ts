@@ -11,7 +11,7 @@ import {
   IMessageBrokerRepository,
 } from '../types/IMessageBrokerRepository';
 
-export class AMQPCLient implements IMessageBrokerRepository {
+export class AMQPClient implements IMessageBrokerRepository {
   private _connection!: amqp.Connection;
   private _channel!: amqp.Channel;
   private _rpcQueue!: string;
