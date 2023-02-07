@@ -11,6 +11,7 @@ import {
 } from '../types/IMessageBrokerRepository';
 
 export class AMQPClient implements IMessageBrokerRepository {
+  private readonly RPC_TIMEOUT = 10000;
   private _connection!: amqp.Connection;
   private _channel!: amqp.Channel;
   private _rpcQueue!: string;
@@ -20,10 +21,20 @@ export class AMQPClient implements IMessageBrokerRepository {
     string,
     {
       resolve: (data: unknown) => void;
-      reject: (reason?: any) => void;
+      reject: (reason?: string) => void;
     }
   >();
 
+  private _timeoutMappings = new Map<
+    string,
+    NodeJS.Timeout | undefined
+  >();
+
+  /**
+   * Initialize AMQP Connection and create a channel
+   * Optionally initialize RPC Queue, where RPC requests are received
+   * @param options IMessageBrokerInitializeOptions
+   */
   public async initialize(
     options?: IMessageBrokerInitializeOptions
   ): Promise<void> {
@@ -44,6 +55,10 @@ export class AMQPClient implements IMessageBrokerRepository {
     }
   }
 
+  /**
+   * Register Functions as RPC Handlers and bind them to the RPC Queue
+   * @param { rpcHandlers } IMessageBrokerRPCHandlers
+   */
   public async registerRPCHandlers({
     rpcHandlers,
   }: {
@@ -71,48 +86,38 @@ export class AMQPClient implements IMessageBrokerRepository {
           const { method, params } = JSON.parse(content.toString());
 
           if (!rpcHandlers[method]) {
-            console.error(`RPC Call ${method} not registered`);
-            this._channel.sendToQueue(
-              replyTo,
-              Buffer.from(
-                JSON.stringify({
-                  error: 'RPC Call not registered',
-                })
-              ),
-              {
-                correlationId,
-              }
-            );
+            logger.error(`RPC Call ${method} not registered`);
+            this._sendToQueue({
+              queue: replyTo,
+              content: this._serialize({ error: 'RPC Call not registered'}),
+              options: { correlationId },
+            });
             return;
           }
 
           try {
             const result = await rpcHandlers[method](params);
-
-            this._channel.sendToQueue(
-              replyTo,
-              Buffer.from(JSON.stringify(result)),
-              {
-                correlationId,
-              }
-            );
+            this._sendToQueue({
+              queue: replyTo,
+              content: this._serialize(result),
+              options: { correlationId },
+            });
 
             this._channel.ack(message);
           } catch (err) {
-            const serializedError = {
+            const errorObj = {
               error: 'Unknown Error',
             };
+
             if (err instanceof Error) {
-              serializedError.error = err.message;
+              errorObj['error'] = err.message;
             }
 
-            this._channel.sendToQueue(
-              replyTo,
-              Buffer.from(JSON.stringify(serializedError)),
-              {
-                correlationId,
-              }
-            );
+            this._sendToQueue({
+              queue: replyTo,
+              content: this._serialize(errorObj),
+              options: { correlationId },
+            });
 
             this._channel.ack(message);
           }
@@ -144,16 +149,24 @@ export class AMQPClient implements IMessageBrokerRepository {
     return new Promise((resolve, reject) => {
       const correlationId = uuidv4();
 
-      this._handlerMappings.set(correlationId, { resolve, reject });
-
-      this._channel.sendToQueue(
-        targetQueue,
-        Buffer.from(JSON.stringify({ method, params })),
-        {
+      this._sendToQueue({
+        queue: targetQueue,
+        content: this._serialize({ method, params }),
+        options: {
           correlationId,
           replyTo: this._replyToQueue,
         }
-      );
+      });
+
+      const timeout = setTimeout(() => {
+        this._handlerMappings.delete(correlationId);
+        this._timeoutMappings.delete(correlationId);
+        clearTimeout(timeout);
+        reject('RPC Call Timeout');
+      }, this.RPC_TIMEOUT);
+
+      this._timeoutMappings.set(correlationId, timeout);
+      this._handlerMappings.set(correlationId, { resolve, reject });
     });
   }
 
@@ -205,7 +218,7 @@ export class AMQPClient implements IMessageBrokerRepository {
       await this._channel.assertQueue(replyQueueName, {
         autoDelete: true,
         durable: false,
-        messageTtl: 10000,
+        messageTtl: this.RPC_TIMEOUT,
       })
     ).queue;
 
@@ -218,13 +231,14 @@ export class AMQPClient implements IMessageBrokerRepository {
 
             const rpcHandler = this._handlerMappings.get(correlationId);
 
-            const rpcResponse = JSON.parse(message.content.toString());
+            const rpcResponse = this._deserialize(message.content);
 
             if (rpcResponse?.error) {
               rpcHandler?.reject(rpcResponse.error);
             } else {
               rpcHandler?.resolve(rpcResponse);
             }
+            clearTimeout(this._timeoutMappings.get(correlationId));
           }
         },
         { noAck: true }
@@ -235,5 +249,32 @@ export class AMQPClient implements IMessageBrokerRepository {
         err
       );
     });
+  }
+
+  private _sendToQueue({
+    queue,
+    content,
+    options,
+  }: {
+    queue: string;
+    content: Buffer;
+    options: amqp.Options.Publish;
+  }): boolean {
+    if (!this._channel) throw new Error('AMQP channel not initialized');
+
+    return this._channel.sendToQueue(queue, content, options);
+    
+  }
+
+  private _serialize(message: any): Buffer {
+    return Buffer.from(JSON.stringify(message));
+  }
+
+  private _deserialize(message: Buffer): any {
+    try {
+      return JSON.parse(message.toString());
+    } catch (error) {
+      return {};
+    }
   }
 }
