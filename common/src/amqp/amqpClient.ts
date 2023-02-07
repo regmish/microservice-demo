@@ -25,10 +25,7 @@ export class AMQPClient implements IMessageBrokerRepository {
     }
   >();
 
-  private _timeoutMappings = new Map<
-    string,
-    NodeJS.Timeout | undefined
-  >();
+  private _timeoutMappings = new Map<string, NodeJS.Timeout | undefined>();
 
   /**
    * Initialize AMQP Connection and create a channel
@@ -89,7 +86,7 @@ export class AMQPClient implements IMessageBrokerRepository {
             logger.error(`RPC Call ${method} not registered`);
             this._sendToQueue({
               queue: replyTo,
-              content: this._serialize({ error: 'RPC Call not registered'}),
+              content: this._serialize({ error: 'RPC Call not registered' }),
               options: { correlationId },
             });
             return;
@@ -155,7 +152,7 @@ export class AMQPClient implements IMessageBrokerRepository {
         options: {
           correlationId,
           replyTo: this._replyToQueue,
-        }
+        },
       });
 
       const timeout = setTimeout(() => {
@@ -238,7 +235,13 @@ export class AMQPClient implements IMessageBrokerRepository {
             } else {
               rpcHandler?.resolve(rpcResponse);
             }
-            clearTimeout(this._timeoutMappings.get(correlationId));
+
+            if (this._timeoutMappings.has(correlationId)) {
+              clearTimeout(this._timeoutMappings.get(correlationId));
+              this._timeoutMappings.delete(correlationId);
+            }
+
+            this._handlerMappings.delete(correlationId);
           }
         },
         { noAck: true }
@@ -263,7 +266,6 @@ export class AMQPClient implements IMessageBrokerRepository {
     if (!this._channel) throw new Error('AMQP channel not initialized');
 
     return this._channel.sendToQueue(queue, content, options);
-    
   }
 
   private _serialize(message: any): Buffer {
