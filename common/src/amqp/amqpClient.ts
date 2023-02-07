@@ -11,7 +11,7 @@ import {
 } from '../types/IMessageBrokerRepository';
 
 export class AMQPClient implements IMessageBrokerRepository {
-  private readonly RPC_TIMEOUT = 10000;
+  private readonly RPC_TIMEOUT = parseInt(process.env.AMQP_RPC_TIMEOUT || '10000', 10);
   private _connection!: amqp.Connection;
   private _channel!: amqp.Channel;
   private _rpcQueue!: string;
