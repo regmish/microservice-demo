@@ -86,7 +86,7 @@ export class AMQPClient implements IMessageBrokerRepository {
             logger.error(`RPC Call ${method} not registered`);
             this._sendToQueue({
               queue: replyTo,
-              content: this._serialize({ error: 'RPC Call not registered' }),
+              content: this._serialize({ error: `RPC Call ${method} not registered` }),
               options: { correlationId },
             });
             return;
@@ -167,20 +167,25 @@ export class AMQPClient implements IMessageBrokerRepository {
     });
   }
 
+  public async cleanup(): Promise<void> {
+    await this?._channel?.close();
+    await this?._connection?.close();
+  }
+
   /** Build connection string either from secret file mounted or env variables */
   private async _buildConnectionString(): Promise<string> {
     if (process.env.AMQP_CONNECTION_STRING) {
       return process.env.AMQP_CONNECTION_STRING;
-    } else if (process.env.AMQP_SECRET_PATH) {
+    } else if (process.env.AMQP_CONNECTION_SECRET_PATH) {
       try {
         const secretFile = await fs.promises.readFile(
-          process.env.AMQP_SECRET_PATH,
+          process.env.AMQP_CONNECTION_SECRET_PATH,
           'utf8'
         );
 
         return secretFile.trim();
       } catch (error) {
-        console.error(`Error reading AMQP secret file: ${error}`);
+        console.error(`Error reading AMQP connection secret file: ${error}`);
         throw error;
       }
     } else if (

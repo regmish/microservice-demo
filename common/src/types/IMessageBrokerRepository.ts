@@ -5,6 +5,7 @@ import { Options } from 'amqplib';
 
 export interface IMessageBrokerRepository {
   initialize(options?: IMessageBrokerInitializeOptions): Promise<void>;
+  cleanup(): Promise<void>;
   registerRPCHandlers(rpcHandlers: IMessageBrokerRPCHandlers): Promise<void>;
   callRPC({
     targetQueue,
