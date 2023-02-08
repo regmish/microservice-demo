@@ -7,6 +7,8 @@ services:
   rabbitmq:
     hostname: rabbitmq
     container_name: rabbitmq
+    profiles:
+      - "deps"
     image: rabbitmq:3.8-management-alpine
     restart: on-failure
     expose: 
@@ -26,33 +28,37 @@ services:
     networks:
       - ms-demo
   
-  # api_gateway:
-  #   hostname: api_gateway
-  #   container_name: api_gateway
-  #   build:
-  #     context: ./services/api
-  #   restart: on-failure
-  #   ports:
-  #     - 8000:8000
-  #   environment:
-  #     - PORT=8000
-  #     - AMQP_CONNECTION_STRING=amqp://admin:admin@rabbitmq:5672
-  #   depends_on:
-  #     rabbitmq:
-  #       condition: service_healthy
-  #   networks:
-  #     - ms-demo
+  api_gateway:
+    hostname: api_gateway
+    container_name: api_gateway
+    profiles:
+      - "svc"
+    build:
+      context: ./services/api
+    restart: on-failure
+    ports:
+      - 8000:8000
+    environment:
+      - PORT=8000
+      - AMQP_CONNECTION_STRING=amqp://admin:admin@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - ms-demo
 
-  # users:
-  #   hostname: users
-  #   container_name: users
-  #   build:
-  #     context: ./services/users
-  #   restart: on-failure
-  #   environment:
-  #     - AMQP_CONNECTION_STRING=amqp://admin:admin@rabbitmq:5672
-  #   depends_on:
-  #     rabbitmq:
-  #       condition: service_healthy
-  #   networks:
-  #     - ms-demo
+  users:
+    hostname: users
+    container_name: users
+    profiles:
+      - "svc"
+    build:
+      context: ./services/users
+    restart: on-failure
+    environment:
+      - AMQP_CONNECTION_STRING=amqp://admin:admin@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - ms-demo
