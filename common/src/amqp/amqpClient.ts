@@ -11,7 +11,10 @@ import {
 } from '../types/IMessageBrokerRepository';
 
 export class AMQPClient implements IMessageBrokerRepository {
-  private readonly RPC_TIMEOUT = parseInt(process.env.AMQP_RPC_TIMEOUT || '10000', 10);
+  private readonly RPC_TIMEOUT = parseInt(
+    process.env.AMQP_RPC_TIMEOUT || '10000',
+    10
+  );
   private _connection!: amqp.Connection;
   private _channel!: amqp.Channel;
   private _rpcQueue!: string;
@@ -38,6 +41,7 @@ export class AMQPClient implements IMessageBrokerRepository {
     if (this._connection && this._channel)
       throw new Error('AMQP connection already initialized');
 
+    logger.info('Initializing AMQP Connection');
     this._connection = await amqp.connect(await this._buildConnectionString());
 
     this._connection.on('error', this._handleConnectionError.bind(this));
@@ -56,11 +60,7 @@ export class AMQPClient implements IMessageBrokerRepository {
    * Register Functions as RPC Handlers and bind them to the RPC Queue
    * @param { rpcHandlers } IMessageBrokerRPCHandlers
    */
-  public async registerRPCHandlers({
-    rpcHandlers,
-  }: {
-    rpcHandlers: IMessageBrokerRPCHandlers;
-  }): Promise<void> {
+  public async registerRPCHandlers(rpcHandlers: IMessageBrokerRPCHandlers): Promise<void> {
     if (!this._channel) throw new Error('AMQP channel not initialized');
 
     if (!this._rpcQueue)

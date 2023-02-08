@@ -13,7 +13,7 @@
     "test": "jest -i"
   },
   "dependencies": {
-    "@shankarregmi/common": "^1.1.4",
+    "@shankarregmi/common": "^1.1.5",
     "ajv": "6.12.6",
     "cors": "2.8.5",
     "dotenv": "16.0.0",
