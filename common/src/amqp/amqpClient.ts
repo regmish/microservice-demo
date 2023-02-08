@@ -228,6 +228,8 @@ export class AMQPClient implements IMessageBrokerRepository {
 
             const rpcHandler = this._handlerMappings.get(correlationId);
 
+            if (!rpcHandler) return;
+
             const rpcResponse = this._deserialize(message.content);
 
             if (rpcResponse?.error) {
