@@ -7,14 +7,17 @@ import ExpressServer from './http/server';
 import { PORT } from './constants';
 
 import { RabbitMQRepository } from './repositories/rabbitMQ.repository';
+import { RedisClientRepository } from './repositories/redisClient.repository';
 
 import { UserController } from './controllers/user.controller';
 import { UserService } from './controllers/user.service';
 
 export const startHttpServer = async (): Promise<Server> => {
   const rabbitMQRepository = new RabbitMQRepository();
+  const redisClientRepository = new RedisClientRepository();
 
   await rabbitMQRepository.initialize();
+  await redisClientRepository.initialize();
 
   const userCtrl = new UserController(new UserService(rabbitMQRepository));
 
