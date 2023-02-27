@@ -28,7 +28,7 @@ func Benchmark() error {
 		API_HOST = "http://localhost:8000/"
 	}
 
-	_, err := net.DialTimeout("tcp", "localhost:8000", 1*time.Second)
+	_, err := net.DialTimeout("tcp", API_HOST, 1*time.Second)
 	if err != nil {
 		fmt.Println("Error running benchmark. Service API not reachable", err.Error())
 		os.Exit(0)
